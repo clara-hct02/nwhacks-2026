@@ -12,7 +12,7 @@ class SpamClassifier(nn.Module):
         - Fully connected layers: classification head
     """
     
-    def __init__(
+    def init(
         self,
         vocab_size: int,
         embedding_dim: int = 128,
@@ -30,7 +30,7 @@ class SpamClassifier(nn.Module):
             dropout: Dropout probability for regularization
             bidirectional: Whether to use bidirectional LSTM
         """
-        super(SpamClassifier, self).__init__()
+        super(SpamClassifier, self).init()
         
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
         
