@@ -1,17 +1,28 @@
 {
-    "name": "Watchdog",
-    "description": "Scam detector for Facebook Messenger",
-    "version": "1.0",
-    "manifest_version": 3,
-    "action": {
-      "default_popup": "src/ui/popup.html",
-      "default_icon": "hello_extensions.png"
-    },
-    "content_scripts": [
+  "name": "Watchdog",
+  "description": "Scam detector for Facebook Messenger",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.messenger.com/*",
+    "https://*.facebook.com/messages/*",
+    "http://localhost:8000/*" 
+  ],
+  "action": {
+    "default_popup": "src/ui/popup.html",
+    "default_icon": "hello_extensions.png"
+  },
+  "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/content.js"],
-      "css": ["src/styles.css"]
+      "matches": [
+        "https://*.messenger.com/*",
+        "https://*.facebook.com/messages/*"
+      ],
+      "js": ["src/scripts/content.js"],
+      "run_at": "document_idle"
     }
   ]
-  }
+}
