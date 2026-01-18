@@ -428,7 +428,7 @@ function showWelcomePopup() {
           <div class="sub-header">your loyal companion for sniffing out scams.</div>
           
           <div class="body-text">
-            I’m on the lookout for scammers in your chats! here’s how I’ll alert you if I smell trouble:
+            I’m on the lookout for scammers in your chats! Here’s how I’ll alert you if I smell trouble:
             
             <div class="example-row">
               <span class="highlight-yellow">this looks suspicious</span>
@@ -442,7 +442,7 @@ function showWelcomePopup() {
               <span>I’ve found a clear red flag for a scam, so be very careful!</span>
             </div>
 
-            <p style="margin-top: 15px;">want to know more? click the alert icons and I’ll fetch a simple explanation of why I flagged that message for you.</p>
+            <p style="margin-top: 15px;">Want to know more? Click the alert icons and I’ll fetch a simple explanation of why I flagged that message for you.</p>
           </div>
 
           <button class="btn" id="proceed-btn">PROCEED</button>
