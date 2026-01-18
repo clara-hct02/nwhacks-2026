@@ -30,7 +30,7 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["mascot.png"],
+      "resources": ["likelyscam.png", "potentialscam.png"],
       "matches": [
         "https://www.facebook.com/*",
         "https://facebook.com/*",
