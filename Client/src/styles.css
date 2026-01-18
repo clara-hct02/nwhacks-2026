@@ -1,26 +1,55 @@
-/* src/styles.css */
-
-/* Red Level (Definite Scam) */
+/* Highlighted Text */
 .scam-highlight.red {
-  background-color: rgba(255, 0, 0, 0.25) !important;
-  border-bottom: 2px solid red;
-  border-radius: 4px;
+  background-color: rgba(255, 0, 0, 0.15) !important;
+  border-bottom: 2px solid red !important;
 }
 
-/* Yellow Level (Suspicious) */
 .scam-highlight.yellow {
-  background-color: rgba(255, 215, 0, 0.3) !important;
-  border-bottom: 2px solid #b8860b;
-  border-radius: 4px;
+  background-color: rgba(255, 215, 0, 0.2) !important;
+  border-bottom: 2px solid #b8860b !important;
 }
 
+/* The Alert Badge */
 .scam-badge {
-  color: rgb(255, 255, 255);
-  /*background: rgb(240, 203, 68);*/
-  font-weight: bold;
-  font-size: 0.75em;
-  padding: 1px 4px;
-  margin-left: 6px;
-  border-radius: 3px;
-  /*border: 1px solid black;*/
+  background: #000 !important;
+  color: #FFD700 !important;
+  font-size: 10px !important;
+  padding: 2px 5px !important;
+  border-radius: 4px !important;
+  margin-left: 5px !important;
+  cursor: help !important;
+  display: inline-block !important;
+  font-family: Arial, sans-serif !important;
+}
+
+/* THE GLOBAL TOOLTIP */
+#watchdog-global-tooltip {
+  display: none; /* Controlled by JS display = 'block' */
+  position: absolute;
+  z-index: 2147483647 !important;
+  width: 240px;
+  background-color: #000 !important;
+  color: #FFFFFF !important;
+  text-align: left;
+  border: 2px solid #FFD700;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  font-family: Arial, sans-serif !important;
+}
+
+/* Tooltip Arrow */
+#watchdog-global-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #FFD700 transparent transparent transparent;
 }
