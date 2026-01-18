@@ -5,6 +5,4 @@ class MessageRequest(BaseModel):
 
 class PredictionResponse(BaseModel):
     threatLevel: str
-
-class ReasoningResponse(BaseModel):
     reasoning: str
