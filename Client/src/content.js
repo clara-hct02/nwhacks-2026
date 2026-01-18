@@ -268,3 +268,189 @@ observer.observe(document.body, {
 
 // Initial scan
 scanTextNodes();
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "SHOW_WELCOME") {
+    showWelcomePopup();
+  }
+});
+
+function showWelcomePopup() {
+  if (document.getElementById('watchdog-welcome-root')) return;
+
+  const host = document.createElement('div');
+  host.id = 'watchdog-welcome-root';
+  const shadow = host.attachShadow({ mode: 'open' });
+
+  const mascotUrl = chrome.runtime.getURL("greetingmascot.png");
+  const yellowIconUrl = chrome.runtime.getURL("yellow_alert.png");
+  const redIconUrl = chrome.runtime.getURL("red_alert.png");
+
+  shadow.innerHTML = `
+    <style>
+      @import url('https://fonts.cdnfonts.com/css/cooper-black');
+
+      .overlay { 
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+        background: rgba(0,0,0,0.7); display: flex; align-items: center; 
+        justify-content: center; z-index: 2147483647; font-family: 'Arial', sans-serif; 
+      }
+
+      .modal-container {
+        position: relative;
+        width: 90%;
+        max-width: 500px;
+        /* Container has margin to prevent the overlapping sticker from hitting the top of the screen */
+        margin-top: 40px; 
+      }
+
+      /* THE HEADER STICKER - No blurry shadow, just a thick white marshmallow outline */
+      .header-sticker {
+        position: absolute;
+        top: -48px; /* Perfectly positioned half-in, half-out */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        text-align: center;
+        white-space: nowrap;
+        
+        /* Multiple solid shadows create the thick white outline (marshmallow look) */
+        filter: 
+          drop-shadow(3px 3px 0 white) 
+          drop-shadow(-3px -3px 0 white)
+          drop-shadow(3px -3px 0 white)
+          drop-shadow(-3px 3px 0 white)
+          drop-shadow(0 4px 0 white)
+          drop-shadow(0 -4px 0 white)
+          drop-shadow(4px 0 0 white)
+          drop-shadow(-4px 0 0 white);
+      }
+
+      .header-sticker h1 {
+        font-family: 'Cooper Black', serif;
+        margin: 0;
+        line-height: 0.8; /* Very tight spacing between rows */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hi-text { 
+        color: #000; 
+        font-size: 34px; 
+      }
+      
+      .wd-text { 
+        color: #c41428; 
+        font-size: 64px; /* Large and punchy like the reference */
+        margin-top: -2px;
+      }
+
+      .modal { 
+        background: #fff;
+        border: 8px solid #c41428; 
+        border-radius: 40px;
+        /* Padding reduced to 50px to bring subheading closer to the header */
+        padding: 50px 40px 40px 40px; 
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+        position: relative;
+        text-align: center;
+      }
+
+      .mascot-img {
+        position: absolute;
+        bottom: -40px;
+        left: -190px;
+        width: 290px;
+        z-index: 11; /* Sits slightly above the modal border */
+        pointer-events: none;
+      }
+
+      .sub-header {
+        font-weight: bold;
+        font-size: 19px;
+        margin-bottom: 20px;
+        color: #000;
+        line-height: 1.1;
+      }
+
+      .body-text {
+        font-size: 14px;
+        line-height: 1.4;
+        color: #333;
+      }
+
+      .example-row {
+        margin: 12px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center; 
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .highlight-yellow { background-color: rgba(255, 215, 0, 0.3); border-bottom: 2px solid orange; padding: 0 4px; border-radius: 2px; }
+      .highlight-red { background-color: rgba(255, 0, 0, 0.15); border-bottom: 2px solid #e43232; padding: 0 4px; border-radius: 2px; }
+      
+      .mini-badge { width: 22px; height: auto; }
+
+      .btn { 
+        display: inline-block;
+        background: #000; 
+        color: #fff; 
+        padding: 12px 60px; 
+        border-radius: 50px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        border: none; 
+        font-size: 16px;
+        letter-spacing: 2px;
+        margin-top: 20px;
+        transition: transform 0.1s;
+      }
+
+      .btn:hover { background: #c41428; transform: scale(1.05); }
+    </style>
+
+    <div class="overlay">
+      <div class="modal-container">
+        <!-- HEADER STICKER -->
+        <div class="header-sticker">
+          <h1>
+            <span class="hi-text">hi, i’m</span> 
+            <span class="wd-text">watchdog!</span>
+          </h1>
+        </div>
+
+        <img src="${mascotUrl}" class="mascot-img" alt="Watchdog Mascot">
+        
+        <div class="modal">
+          <div class="sub-header">your loyal companion for sniffing out scams.</div>
+          
+          <div class="body-text">
+            I’m on the lookout for scammers in your chats! here’s how I’ll alert you if I smell trouble:
+            
+            <div class="example-row">
+              <span class="highlight-yellow">this looks suspicious</span>
+              <img src="${yellowIconUrl}" class="mini-badge">
+              <span>It might be a scam, so please proceed with caution.</span>
+            </div>
+
+            <div class="example-row">
+              <span class="highlight-red">this looks dangerous</span>
+              <img src="${redIconUrl}" class="mini-badge">
+              <span>I’ve found a clear red flag for a scam, so be very careful!</span>
+            </div>
+
+            <p style="margin-top: 15px;">want to know more? click the alert icons and I’ll fetch a simple explanation of why I flagged that message for you.</p>
+          </div>
+
+          <button class="btn" id="proceed-btn">PROCEED</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(host);
+  shadow.getElementById('proceed-btn').onclick = () => host.remove();
+}
