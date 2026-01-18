@@ -1,8 +1,9 @@
 body {
   margin: 0;
-  padding: 16px;
-  background: tra;
+  padding: 0;
+  background: transparent;
   font-family: system-ui, sans-serif;
+  overflow: hidden; /* Prevents accidental scrollbars on edges */
 
   transform-origin: top left;
   transition: transform 0.2s ease, width 0.2s ease;
@@ -12,14 +13,23 @@ body.zoomed {
   transform: scale(1.25);
 }
 
-/* White card */
+/* Square Card */
 .card {
   background: #ffffff;
   width: 240px;
-  padding: 24px 16px;
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   height: 300px;
+  
+  /* Remove rounded edges */
+  border-radius: 0; 
+
+  /* Add thin white border */
+  border: 3px solid #ffffff; 
+  
+  /* Use box-sizing to ensure the border is inside the 240x300 dimensions */
+  box-sizing: border-box; 
+
+  /* Add a very subtle dark shadow around the white border to make it visible */
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1), 0 0 10px rgba(0,0,0,0.2);
 
   display: flex;
   justify-content: center;
@@ -27,12 +37,11 @@ body.zoomed {
   align-items: center;
   position: relative;
 
-  /* NEW: decal background */
+  /* Decal background - updated to be square */
   background-image: url("../../background.png");
   background-repeat: no-repeat;
-  background-position: top 60%;
-  background-size: cover; /* ensures no overflow */
-  background-size: 300px;
+  background-position: top center;
+  background-size: 100% auto; /* Ensures it fills the square width */
 }
 
 /* Centered logo */
@@ -41,14 +50,20 @@ body.zoomed {
   height: auto;
   display: block;
   position: relative;
-  z-index: 2; /* ensures logo sits above decal */
+  z-index: 2;
 }
 
 .info-logo {
   width: 24px;
   height: auto;
-  margin-top: 80px; /* spacing below main logo */ 
+  margin-top: 80px; 
   display: block; 
   position: relative; 
-  z-index: 2; /* stays above decal */
+  z-index: 2;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.info-logo:hover {
+  transform: scale(1.1);
 }

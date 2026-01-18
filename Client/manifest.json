@@ -6,7 +6,7 @@
 
   "action": {
     "default_popup": "src/ui/popup.html",
-    "default_icon": "Watchdog.png"
+    "default_icon": "extensionicon.png"
   },
 
   "background": {
