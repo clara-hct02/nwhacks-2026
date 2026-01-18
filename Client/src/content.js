@@ -359,9 +359,9 @@ function showWelcomePopup() {
 
       .mascot-img {
         position: absolute;
-        bottom: -40px;
-        left: -190px;
-        width: 290px;
+        bottom: -30px;
+        left: -200px;
+        width: 270px;
         z-index: 11; /* Sits slightly above the modal border */
         pointer-events: none;
       }
