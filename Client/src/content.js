@@ -35,9 +35,15 @@ function highlightNode(textNode, analysis) {
   const span = document.createElement("span");
   span.className = `scam-highlight ${analysis.level.toLowerCase()}`;
   
-  const badge = document.createElement("span");
-  badge.className = "scam-badge";
-  badge.textContent = "⚠️ ALERT";
+  const badge = document.createElement("img");
+  badge.className = "scam-badge-img";
+
+  badge.src = chrome.runtime.getURL(
+    analysis.level === "RED" ? "red_alert.png" : "yellow_alert.png"
+  );
+
+  badge.alt = "Scam Alert";
+
 
   const handleAlertClick = (e) => {
     e.stopPropagation();
@@ -47,11 +53,11 @@ function highlightNode(textNode, analysis) {
     const themeColor = analysis.level === "RED" ? "#e92d2d" : "#f4bd3c";
 
     miniPopup.innerHTML = `
-      <div style="border-top: 5px solid ${themeColor}; padding: 10px;">
+      <div style="border-top: 5px solid ${themeColor}; --wd-theme-color: ${themeColor};">
         <div style="font-weight: bold; margin-bottom: 8px;">
           Labelled <span style="color: ${themeColor}">${threatLabel}</span> threat
         </div>
-        <button id="wd-learn-more" class="mini-btn">Learn More</button>
+        <button id="wd-learn-more" class="mini-btn">LEARN MORE</button>
       </div>
     `;
 
@@ -173,7 +179,7 @@ function showWatchdogPopup(level, reason) {
   display: inline-block;
   background: #000; 
   color: #fff; 
-  padding: 12px 10px; 
+  padding: 12px 20px; 
   border-radius: 50px; 
   font-weight: bold; 
   cursor: pointer; 
