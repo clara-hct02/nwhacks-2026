@@ -10,8 +10,8 @@
   position: absolute;
   z-index: 2147483647;
   width: 180px;
-  background: #000; /* Black Background */
-  color: #fff; /* White Text */
+  background: #fff; /* Black Background */
+  color: #000; /* White Text */
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   font-family: Arial, sans-serif;
@@ -29,13 +29,12 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #000 transparent transparent transparent;
+  border-color: #fff transparent transparent transparent;
 }
 
-/* The Learn More Button */
 .mini-btn {
-  background: #f4bd3c; /* Yellow Button */
-  color: #000;
+  background: #000;      /* Default: black */
+  color: #fff;           /* White text */
   border: none;
   padding: 5px 12px;
   border-radius: 4px;
@@ -43,10 +42,11 @@
   cursor: pointer;
   font-size: 12px;
   width: 100%;
+  transition: background 0.15s ease;
 }
 
 .mini-btn:hover {
-  background: #fff;
+  background: var(--wd-theme-color); /* Dynamic hover color */
 }
 
 /* Mascot Warning Popup Styles (Keep these from before) */
@@ -55,16 +55,10 @@
   z-index: 2147483647;
 }
 
-.scam-badge {
-  background: #000 !important;
-  color: #f4bd3c !important;
-  font-size: 10px !important;
-  padding: 2px 5px !important;
-  border-radius: 4px !important;
-  margin-left: 5px !important;
-  cursor: pointer !important;
-  display: inline-block !important;
-  font-family: Arial, sans-serif !important;
+.scam-badge-img {
+  width: 40px;
+  height: auto;
+  margin-left: 6px;
+  cursor: pointer;
   vertical-align: middle;
-  border: 1px solid #f4bd3c;
 }
