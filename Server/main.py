@@ -32,15 +32,12 @@ async def root():
 async def analyze(req: MessageRequest):
     message = req.message
 
-    threat = "RED"
-    # threat = assess_threat(message)
+    # The extension already knows the threat level.
+    # Backend ONLY generates the AI reason.
+    reason = get_reason(message)
 
-    if threat == "RED" or threat == "YELLOW":
-        reason = get_reason(message)
-    else:
-        reason = None
-
-    return {"threatLevel": threat, "reasoning": reason}     
+    return {"threatLevel": "RED", "reasoning": reason}
+   
 
 
 def get_reason(message):

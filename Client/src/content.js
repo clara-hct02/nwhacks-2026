@@ -61,12 +61,21 @@ function highlightNode(textNode, analysis) {
     miniPopup.style.top = `${rect.top + window.scrollY - 10}px`;
     miniPopup.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
 
-    // "Learn More" logic
-    document.getElementById('wd-learn-more').onclick = () => {
-      miniPopup.style.display = 'none';
-      // Now show the AI/Detailed explanation popup (the one with the mascot)
-      showWatchdogPopup(analysis.level, analysis.reason);
-    };
+  document.getElementById('wd-learn-more').onclick = async () => {
+    miniPopup.style.display = 'none';
+
+    const server = await new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: "ANALYZE", message: textNode.textContent },
+        (response) => resolve(response)
+      );
+    });
+
+    const reason = server?.reasoning ?? analysis.reason;
+
+    showWatchdogPopup(analysis.level, reason);
+  };
+
   };
 
   badge.onclick = handleAlertClick;
