@@ -43,25 +43,86 @@ function getScamAnalysis(text) {
 
 function showWatchdogPopup(level, reason) {
   if (document.getElementById('watchdog-alert-root')) return;
+  
   const host = document.createElement('div');
   host.id = 'watchdog-alert-root';
   const shadow = host.attachShadow({ mode: 'open' });
+
+  // 1. Get the mascot image URL from your Client folder
+  const mascotUrl = chrome.runtime.getURL('mascot.png');
+
   const isRed = level === "RED";
-  const bgColor = isRed ? "#FF0000" : "#FFD700";
-  const textColor = isRed ? "#FFFFFF" : "#000000";
+  const themeColor = isRed ? "#bc3e3e" : "#FFD700"; // Using the sketch's red
 
   shadow.innerHTML = `
     <style>
-      .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2147483647; font-family: Arial, sans-serif; }
-      .modal { background: white; width: 90%; max-width: 450px; border: 8px solid ${bgColor}; border-radius: 15px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-      .header { background: ${bgColor}; color: ${textColor}; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; }
-      .content { padding: 25px; color: #000; text-align: center; font-size: 18px; line-height: 1.4; }
-      .btn { display: block; width: 80%; margin: 0 auto 20px auto; padding: 12px; background: #000; color: #fff; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; border: none; font-size: 16px; }
+      .overlay { 
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+        background: rgba(0,0,0,0.7); display: flex; align-items: center; 
+        justify-content: center; z-index: 2147483647; font-family: 'Arial', sans-serif; 
+      }
+      .modal { 
+        background: #d9d9d9; /* Light grey background from your sketch */
+        width: 90%; max-width: 400px; 
+        border: 10px solid ${themeColor}; 
+        border-radius: 35px; /* Hand-drawn rounded look */
+        overflow: hidden; 
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+        text-align: center;
+        padding-bottom: 25px;
+      }
+      .header { 
+        background: ${themeColor}; 
+        color: white; 
+        padding: 15px; 
+        font-weight: bold; 
+        font-size: 26px; 
+        letter-spacing: 2px;
+      }
+      .mascot-container {
+        padding: 20px 0;
+      }
+      .mascot-img {
+        width: 140px; /* Adjust based on your PNG proportions */
+        height: auto;
+      }
+      .content { 
+        padding: 20px 30px; 
+        color: #000; 
+        font-size: 18px; 
+        line-height: 1.4; 
+        /* The horizontal lines from your sketch */
+        border-top: 2px solid #999;
+        border-bottom: 2px solid #999;
+        margin: 0 30px 25px 30px;
+      }
+      .btn { 
+        display: inline-block;
+        background: #000; 
+        color: #fff; 
+        padding: 12px 40px; 
+        border-radius: 50px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        border: none; 
+        font-size: 18px; 
+        transition: transform 0.1s;
+      }
+      .btn:hover { background: #222; }
+      .btn:active { transform: scale(0.95); }
     </style>
     <div class="overlay">
       <div class="modal">
         <div class="header">⚠️ WARNING</div>
-        <div class="content"><strong>${reason}</strong><br><br>Please be careful.</div>
+        
+        <div class="mascot-container">
+          <img src="${mascotUrl}" class="mascot-img" alt="Watchdog Mascot">
+        </div>
+
+        <div class="content">
+          ${reason}
+        </div>
+
         <button class="btn" id="close-btn">I Understand</button>
       </div>
     </div>
