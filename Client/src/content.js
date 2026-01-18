@@ -53,13 +53,20 @@ function highlightNode(textNode, analysis) {
     const themeColor = analysis.level === "RED" ? "#e92d2d" : "#f4bd3c";
 
     miniPopup.innerHTML = `
-      <div style="border-top: 5px solid ${themeColor}; --wd-theme-color: ${themeColor};">
+      <div style="
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        --wd-theme-color: ${themeColor};
+      ">
         <div style="font-weight: bold; margin-bottom: 8px;">
           Labelled <span style="color: ${themeColor}">${threatLabel}</span> threat
         </div>
         <button id="wd-learn-more" class="mini-btn">LEARN MORE</button>
       </div>
     `;
+
 
     miniPopup.style.display = 'block';
     miniPopup.style.top = `${rect.top + window.scrollY - 10}px`;
