@@ -54,13 +54,20 @@ function highlightNode(textNode, analysis) {
     const themeColor = analysis.level === "RED" ? "#e92d2d" : "#f4bd3c";
 
     miniPopup.innerHTML = `
-      <div style="border-top: 5px solid ${themeColor}; --wd-theme-color: ${themeColor};">
+      <div style="
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        --wd-theme-color: ${themeColor};
+      ">
         <div style="font-weight: bold; margin-bottom: 8px;">
           Labelled <span style="color: ${themeColor}">${threatLabel}</span> threat
         </div>
         <button id="wd-learn-more" class="mini-btn">LEARN MORE</button>
       </div>
     `;
+
 
     miniPopup.style.display = 'block';
     miniPopup.style.top = `${rect.top + window.scrollY - 10}px`;
@@ -428,7 +435,7 @@ function showWelcomePopup() {
           <div class="sub-header">your loyal companion for sniffing out scams.</div>
           
           <div class="body-text">
-            I’m on the lookout for scammers in your chats! here’s how I’ll alert you if I smell trouble:
+            I’m on the lookout for scammers in your chats! Here’s how I’ll alert you if I smell trouble:
             
             <div class="example-row">
               <span class="highlight-yellow">this looks suspicious</span>
@@ -442,7 +449,7 @@ function showWelcomePopup() {
               <span>I’ve found a clear red flag for a scam, so be very careful!</span>
             </div>
 
-            <p style="margin-top: 15px;">want to know more? click the alert icons and I’ll fetch a simple explanation of why I flagged that message for you.</p>
+            <p style="margin-top: 15px;">Want to know more? Click the alert icons and I’ll fetch a simple explanation of why I flagged that message for you.</p>
           </div>
 
           <button class="btn" id="proceed-btn">PROCEED</button>
