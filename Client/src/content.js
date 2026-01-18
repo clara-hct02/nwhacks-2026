@@ -181,53 +181,56 @@ function showWatchdogPopup(level, reason) {
 }
 
 // ---------------------------------------------------------
-// UPDATED: Messenger‑only scanning
+// Messenger-only message scanning (bubble-based)
 // ---------------------------------------------------------
 
-async function scanTextNodes(root) {
-  if (!root) return;
+async function scanTextNodes() {
+  // Your real message bubbles look like:
+  // <div dir="auto" class="html-div ...">send gift card</div>
+  const messageNodes = document.querySelectorAll('div[dir="auto"].html-div');
 
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-  let node;
-  const nodes = [];
+  for (const node of messageNodes) {
+    // Avoid scanning the same message twice
+    if (node.classList.contains("wd-scanned")) continue;
+    node.classList.add("wd-scanned");
 
-  while ((node = walker.nextNode())) {
-    const parent = node.parentElement;
-    if (!parent || ["SCRIPT", "STYLE", "TEXTAREA", "NOSCRIPT"].includes(parent.tagName)) continue;
-    if (parent.closest(".scam-highlight")) continue;
-    if (!node.textContent.trim()) continue;
+    const text = node.innerText.trim();
+    if (!text) continue;
 
-    nodes.push(node);
-  }
-
-  for (const textNode of nodes) {
     const result = await new Promise((resolve) => {
       chrome.runtime.sendMessage(
-        { type: "CLASSIFY", message: textNode.textContent },
+        { type: "CLASSIFY", message: text },
         (response) => resolve(response)
       );
     });
 
-    if (result.threatLevel === "RED" || result.threatLevel === "YELLOW") {
-      highlightNode(textNode, {
-        level: result.threatLevel,
-        reason: "Loading…"
-      });
+    if (result && (result.threatLevel === "RED" || result.threatLevel === "YELLOW")) {
+      if (node.firstChild) {
+        highlightNode(node.firstChild, {
+          level: result.threatLevel,
+          reason: "Loading…"
+        });
+      }
     }
   }
 }
 
-// Initial scan — Messenger only
-scanTextNodes(document.querySelector('[role="main"]'));
+// ---------------------------------------------------------
+// Continuous scanning via MutationObserver
+// ---------------------------------------------------------
 
-// Observe only Messenger chat window
 let timeout;
 const observer = new MutationObserver(() => {
   clearTimeout(timeout);
   timeout = setTimeout(() => {
-    const chat = document.querySelector('[role="main"]');
-    if (chat) scanTextNodes(chat);
-  }, 800);
+    scanTextNodes();
+  }, 200);
 });
 
-observer.observe(document.body, { childList: true, subtree: true });
+observer.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// Initial scan
+scanTextNodes();
