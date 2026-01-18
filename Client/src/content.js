@@ -15,22 +15,6 @@ const SCAM_DB = {
   "security code": { level: "YELLOW", reason: "Never share a security code sent to your phone. Scammers use these to hack into your accounts." }
 };
 
-// 1. Create the Global Tooltip ONCE
-const globalTooltip = document.createElement('div');
-globalTooltip.id = 'watchdog-global-tooltip';
-document.body.appendChild(globalTooltip);
-
-function fetchReasonFromServer(message) {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage(
-      { type: "ANALYZE", message },
-      (response) => {
-        resolve(response?.reasoning ?? "No reasoning returned.");
-      }
-    );
-  });
-}
-
 function getScamAnalysis(text) {
   const lower = text.toLowerCase();
   for (const phrase in SCAM_DB) {
@@ -40,6 +24,71 @@ function getScamAnalysis(text) {
   }
   return null;
 }
+
+// 1. Create Global Portal for the "Mini-Popup"
+const miniPopup = document.createElement('div');
+miniPopup.id = 'watchdog-mini-popup';
+miniPopup.style.display = 'none';
+document.body.appendChild(miniPopup);
+
+function highlightNode(textNode, analysis) {
+  const span = document.createElement("span");
+  span.className = `scam-highlight ${analysis.level.toLowerCase()}`;
+  
+  const badge = document.createElement("span");
+  badge.className = "scam-badge";
+  badge.textContent = "⚠️ ALERT";
+
+  // NEW CLICK LOGIC
+  const handleAlertClick = (e) => {
+    e.stopPropagation(); // Stop Messenger from opening other menus
+    
+    const rect = badge.getBoundingClientRect();
+    const threatLabel = analysis.level === "RED" ? "HIGH" : "LOW";
+    const themeColor = analysis.level === "RED" ? "#e92d2d" : "#f4bd3c";
+
+    // Show the small intermediate popup
+    miniPopup.innerHTML = `
+      <div style="border-top: 5px solid ${themeColor}; padding: 10px;">
+        <div style="font-weight: bold; margin-bottom: 8px;">
+          Labelled <span style="color: ${themeColor}">${threatLabel}</span> threat
+        </div>
+        <button id="wd-learn-more" class="mini-btn">Learn More</button>
+      </div>
+    `;
+
+    miniPopup.style.display = 'block';
+    miniPopup.style.top = `${rect.top + window.scrollY - 10}px`;
+    miniPopup.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
+
+    // "Learn More" logic
+    document.getElementById('wd-learn-more').onclick = () => {
+      miniPopup.style.display = 'none';
+      // Now show the AI/Detailed explanation popup (the one with the mascot)
+      showWatchdogPopup(analysis.level, analysis.reason);
+    };
+  };
+
+  badge.onclick = handleAlertClick;
+  span.onclick = handleAlertClick;
+
+  span.textContent = textNode.textContent;
+  span.appendChild(badge);
+
+  if (textNode.parentNode) {
+    textNode.parentNode.replaceChild(span, textNode);
+  }
+}
+
+// Close mini-popup if user clicks anywhere else
+document.addEventListener('mousedown', (e) => {
+  // If the click is NOT on the miniPopup and NOT on a scam highlight/badge
+  if (miniPopup.style.display === 'block' && 
+      !miniPopup.contains(e.target) && 
+      !e.target.closest('.scam-highlight')) {
+    miniPopup.style.display = 'none';
+  }
+});
 
 function showWatchdogPopup(level, reason) {
   if (document.getElementById('watchdog-alert-root')) return;
@@ -52,7 +101,7 @@ function showWatchdogPopup(level, reason) {
   const mascotUrl = chrome.runtime.getURL('mascot.png');
 
   const isRed = level === "RED";
-  const themeColor = isRed ? "#bc3e3e" : "#FFD700"; // Using the sketch's red
+  const themeColor = isRed ? "#bc3e3e" : "#f4bd3c"; // Using the sketch's red
 
   shadow.innerHTML = `
     <style>
@@ -62,7 +111,7 @@ function showWatchdogPopup(level, reason) {
         justify-content: center; z-index: 2147483647; font-family: 'Arial', sans-serif; 
       }
       .modal { 
-        background: #d9d9d9; /* Light grey background from your sketch */
+        background:rgb(255, 255, 255); /* Light grey background from your sketch */
         width: 90%; max-width: 400px; 
         border: 10px solid ${themeColor}; 
         border-radius: 35px; /* Hand-drawn rounded look */
@@ -113,7 +162,7 @@ function showWatchdogPopup(level, reason) {
     </style>
     <div class="overlay">
       <div class="modal">
-        <div class="header">⚠️ WARNING</div>
+        <div class="header">⚠ WARNING</div>
         
         <div class="mascot-container">
           <img src="${mascotUrl}" class="mascot-img" alt="Watchdog Mascot">
@@ -147,41 +196,8 @@ function scanTextNodes(root = document.body) {
 
   matches.forEach(({ node, analysis }) => {
     highlightNode(node, analysis);
-
-    if (analysis.level === "RED") {
-      fetchReasonFromServer(node.textContent).then(serverReason => {
-        showWatchdogPopup(analysis.level, serverReason);
-      });
-    }
+    // REMOVED: showWatchdogPopup no longer triggers automatically here
   });
-}
-
-function highlightNode(textNode, analysis) {
-  const span = document.createElement("span");
-  span.className = `scam-highlight ${analysis.level.toLowerCase()}`;
-  
-  const badge = document.createElement("span");
-  badge.className = "scam-badge";
-  badge.textContent = "⚠️ ALERT";
-
-  badge.onmouseenter = (e) => {
-    const rect = badge.getBoundingClientRect();
-    globalTooltip.innerHTML = `<strong>Why was this flagged?</strong><br>AI is analyzing this message...`;
-    globalTooltip.style.display = 'block';
-    globalTooltip.style.top = `${rect.top + window.scrollY - 10}px`;
-    globalTooltip.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
-  };
-
-  badge.onmouseleave = () => {
-    globalTooltip.style.display = 'none';
-  };
-
-  span.textContent = textNode.textContent;
-  span.appendChild(badge);
-
-  if (textNode.parentNode) {
-    textNode.parentNode.replaceChild(span, textNode);
-  }
 }
 
 // Initial Scan

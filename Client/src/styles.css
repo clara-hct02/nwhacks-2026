@@ -1,49 +1,27 @@
-/* Highlighted Text */
-.scam-highlight.red {
-  background-color: rgba(255, 0, 0, 0.15) !important;
-  border-bottom: 2px solid red !important;
+.scam-highlight {
+  cursor: pointer;
+  border-radius: 4px;
 }
+.scam-highlight.red { background-color: rgba(255, 0, 0, 0.15) !important; border-bottom: 2px solid rgb(228, 50, 50); }
+.scam-highlight.yellow { background-color: rgba(255, 215, 0, 0.2) !important; border-bottom: 2px solid orange; }
 
-.scam-highlight.yellow {
-  background-color: rgba(255, 215, 0, 0.2) !important;
-  border-bottom: 2px solid #b8860b !important;
-}
-
-/* The Alert Badge */
-.scam-badge {
-  background: #000 !important;
-  color: #FFD700 !important;
-  font-size: 10px !important;
-  padding: 2px 5px !important;
-  border-radius: 4px !important;
-  margin-left: 5px !important;
-  cursor: help !important;
-  display: inline-block !important;
-  font-family: Arial, sans-serif !important;
-}
-
-/* THE GLOBAL TOOLTIP */
-#watchdog-global-tooltip {
-  display: none; /* Controlled by JS display = 'block' */
+/* The Mini-Popup Portal */
+#watchdog-mini-popup {
   position: absolute;
-  z-index: 2147483647 !important;
-  width: 240px;
-  background-color: #000 !important;
-  color: #FFFFFF !important;
-  text-align: left;
-  border: 2px solid #FFD700;
-  padding: 12px;
+  z-index: 2147483647;
+  width: 180px;
+  background: #000; /* Black Background */
+  color: #fff; /* White Text */
   border-radius: 8px;
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  font-family: Arial, sans-serif;
+  text-align: center;
   transform: translate(-50%, -100%);
-  font-family: Arial, sans-serif !important;
+  pointer-events: auto;
 }
 
-/* Tooltip Arrow */
-#watchdog-global-tooltip::after {
+/* Tooltip Arrow for the mini-popup */
+#watchdog-mini-popup::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -51,5 +29,42 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #FFD700 transparent transparent transparent;
+  border-color: #000 transparent transparent transparent;
+}
+
+/* The Learn More Button */
+.mini-btn {
+  background: #f4bd3c; /* Yellow Button */
+  color: #000;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 12px;
+  width: 100%;
+}
+
+.mini-btn:hover {
+  background: #fff;
+}
+
+/* Mascot Warning Popup Styles (Keep these from before) */
+#watchdog-alert-root {
+  position: relative;
+  z-index: 2147483647;
+}
+
+.scam-badge {
+  background: #000 !important;
+  color: #f4bd3c !important;
+  font-size: 10px !important;
+  padding: 2px 5px !important;
+  border-radius: 4px !important;
+  margin-left: 5px !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  font-family: Arial, sans-serif !important;
+  vertical-align: middle;
+  border: 1px solid #f4bd3c;
 }

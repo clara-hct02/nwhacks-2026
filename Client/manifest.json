@@ -17,5 +17,11 @@
         "css": ["src/styles.css"]
       }
     ],
+    "web_accessible_resources": [
+    {
+      "resources": ["mascot.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
     "host_permissions": ["http://127.0.0.1:8000/*"]
 }
