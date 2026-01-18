@@ -100,9 +100,14 @@ function showWatchdogPopup(level, reason) {
   host.id = 'watchdog-alert-root';
   const shadow = host.attachShadow({ mode: 'open' });
 
-  const mascotUrl = chrome.runtime.getURL('mascot.png');
   const isRed = level === "RED";
-  const themeColor = isRed ? "#bc3e3e" : "#f4bd3c";
+
+  const mascotUrl = chrome.runtime.getURL(
+    isRed ? "likelyscam.png" : "potentialscam.png"
+  );
+
+  const themeColor = isRed ? "#c41428" : "#f4bd3c";
+
 
   shadow.innerHTML = `
     <style>
@@ -111,16 +116,32 @@ function showWatchdogPopup(level, reason) {
         background: rgba(0,0,0,0.7); display: flex; align-items: center; 
         justify-content: center; z-index: 2147483647; font-family: 'Arial', sans-serif; 
       }
-      .modal { 
-        background:rgb(255, 255, 255);
-        width: 90%; max-width: 400px; 
-        border: 10px solid ${themeColor}; 
-        border-radius: 35px;
-        overflow: hidden; 
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-        text-align: center;
-        padding-bottom: 25px;
+
+.modal { 
+  background: #fff;
+  width: 90%;
+  max-width: 400px;
+  border: 10px solid ${themeColor}; 
+  border-radius: 35px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Move content closer to top */
+  padding: 80px 20px 25px; /* previously 110px */
+}
+
+      .mascot-container {
+        position: absolute;
+        top: -90px;          /* ⬅ pull mascot above card */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2;
       }
+
       .header { 
         background: ${themeColor}; 
         color: white; 
@@ -129,51 +150,58 @@ function showWatchdogPopup(level, reason) {
         font-size: 26px; 
         letter-spacing: 2px;
       }
-      .mascot-container {
-        padding: 20px 0;
-      }
       .mascot-img {
-        width: 140px;
+        width: 400px;
         height: auto;
       }
-      .content { 
-        padding: 20px 30px; 
-        color: #000; 
-        font-size: 18px; 
-        line-height: 1.4; 
-        border-top: 2px solid #999;
-        border-bottom: 2px solid #999;
-        margin: 0 30px 25px 30px;
-      }
-      .btn { 
-        display: inline-block;
-        background: #000; 
-        color: #fff; 
-        padding: 12px 40px; 
-        border-radius: 50px; 
-        font-weight: bold; 
-        cursor: pointer; 
-        border: none; 
-        font-size: 18px; 
-        transition: transform 0.1s;
-      }
-      .btn:hover { background: #222; }
+.content { 
+  /* Center text horizontally */
+  text-align: center;
+
+  /* Pull text upward */
+  margin-top: 0;
+
+  /* Keep full width so centering works cleanly */
+  align-self: stretch;
+
+  color: #000; 
+  font-size: 18px; 
+  line-height: 1.4; 
+  margin-bottom: 20px;
+}
+.btn { 
+  display: inline-block;
+  background: #000; 
+  color: #fff; 
+  padding: 12px 10px; 
+  border-radius: 50px; 
+  font-weight: bold; 
+  cursor: pointer; 
+  border: none; 
+
+  /* NEW: smaller text + more spacing */
+  font-size: 14px;
+  letter-spacing: 2px;
+
+  transition: transform 0.1s;
+}
+
+      .btn:hover { background: ${themeColor}; }
       .btn:active { transform: scale(0.95); }
     </style>
     <div class="overlay">
-      <div class="modal">
-        <div class="header">⚠ WARNING</div>
-        
-        <div class="mascot-container">
-          <img src="${mascotUrl}" class="mascot-img" alt="Watchdog Mascot">
-        </div>
-
-        <div class="content">
-          ${reason}
-        </div>
-
-        <button class="btn" id="close-btn">I Understand</button>
+    <div class="modal">
+      <div class="mascot-container">
+        <img src="${mascotUrl}" class="mascot-img" alt="Watchdog Mascot">
       </div>
+
+      <div class="content">
+        ${reason}
+      </div>
+
+      <button class="btn" id="close-btn">I UNDERSTAND</button>
+    </div>
+
     </div>
   `;
   document.body.appendChild(host);
