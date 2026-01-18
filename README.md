@@ -1,4 +1,5 @@
-# nwhacks-2026
+# WatchDog
+https://www.youtube.com/watch?v=blu32IkMIB8
 1. Get API key from this website https://aistudio.google.com/
 2. Make a .env file at the root of the project
 3. Put `GEMINI_API_KEY=API_KEY_HERE` in the .env file
