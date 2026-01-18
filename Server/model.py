@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
 
 class SpamClassifier(nn.Module):
@@ -7,7 +8,7 @@ class SpamClassifier(nn.Module):
     LSTM-based neural network for spam message classification.
     
     Architecture:
-        - Embedding layer: converts word indices to dense vectors
+        - Embedding layer: converts word indices to dense vectors (supports pre-trained)
         - LSTM: captures sequential patterns in text
         - Fully connected layers: classification head
     """
@@ -15,24 +16,39 @@ class SpamClassifier(nn.Module):
     def __init__(
         self,
         vocab_size: int,
-        embedding_dim: int = 128,
+        embedding_dim: int = 100,
         hidden_dim: int = 256,
         num_layers: int = 2,
         dropout: float = 0.3,
-        bidirectional: bool = True
+        bidirectional: bool = True,
+        pretrained_embeddings: np.ndarray = None,
+        freeze_embeddings: bool = False
     ):
         """
         Args:
             vocab_size: Size of the vocabulary (number of unique tokens)
-            embedding_dim: Dimension of word embeddings
+            embedding_dim: Dimension of word embeddings (must match pretrained if provided)
             hidden_dim: Number of hidden units in LSTM
             num_layers: Number of LSTM layers
             dropout: Dropout probability for regularization
             bidirectional: Whether to use bidirectional LSTM
+            pretrained_embeddings: Optional numpy array of shape (vocab_size, embedding_dim)
+            freeze_embeddings: If True, don't update embeddings during training
         """
         super(SpamClassifier, self).__init__()
         
+        # Create embedding layer
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+        
+        # Load pre-trained embeddings if provided
+        if pretrained_embeddings is not None:
+            self.embedding.weight.data.copy_(torch.from_numpy(pretrained_embeddings))
+            print(f"Loaded pre-trained embeddings: {pretrained_embeddings.shape}")
+        
+        # Optionally freeze embeddings
+        if freeze_embeddings:
+            self.embedding.weight.requires_grad = False
+            print("Embeddings frozen (will not be updated during training)")
         
         self.lstm = nn.LSTM(
             input_size=embedding_dim,
@@ -111,12 +127,13 @@ def get_optimizer(model: nn.Module, lr: float = 1e-3):
 # Example usage
 if __name__ == "__main__":
     # Hyperparameters
-    VOCAB_SIZE = 10000  # Adjust based on your tokenizer
+    VOCAB_SIZE = 10000
+    EMBEDDING_DIM = 100  # GloVe uses 100d
     BATCH_SIZE = 32
-    SEQ_LENGTH = 100    # Max message length
+    SEQ_LENGTH = 100
     
-    # Create model
-    model = SpamClassifier(vocab_size=VOCAB_SIZE)
+    # Create model (without pre-trained for demo)
+    model = SpamClassifier(vocab_size=VOCAB_SIZE, embedding_dim=EMBEDDING_DIM)
     print(model)
     
     # Count parameters
@@ -130,4 +147,3 @@ if __name__ == "__main__":
     output = model(dummy_input)
     print(f"\nInput shape: {dummy_input.shape}")
     print(f"Output shape: {output.shape}")
-

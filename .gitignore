@@ -1,1 +1,4 @@
+glove/
+__pycache__/
+models/
 Server/__pycache__
