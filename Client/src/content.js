@@ -39,15 +39,13 @@ function highlightNode(textNode, analysis) {
   badge.className = "scam-badge";
   badge.textContent = "⚠️ ALERT";
 
-  // NEW CLICK LOGIC
   const handleAlertClick = (e) => {
-    e.stopPropagation(); // Stop Messenger from opening other menus
+    e.stopPropagation();
     
     const rect = badge.getBoundingClientRect();
     const threatLabel = analysis.level === "RED" ? "HIGH" : "LOW";
     const themeColor = analysis.level === "RED" ? "#e92d2d" : "#f4bd3c";
 
-    // Show the small intermediate popup
     miniPopup.innerHTML = `
       <div style="border-top: 5px solid ${themeColor}; padding: 10px;">
         <div style="font-weight: bold; margin-bottom: 8px;">
@@ -61,21 +59,19 @@ function highlightNode(textNode, analysis) {
     miniPopup.style.top = `${rect.top + window.scrollY - 10}px`;
     miniPopup.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
 
-  document.getElementById('wd-learn-more').onclick = async () => {
-    miniPopup.style.display = 'none';
+    document.getElementById('wd-learn-more').onclick = async () => {
+      miniPopup.style.display = 'none';
 
-    const server = await new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { type: "REASON", message: textNode.textContent },
-        (response) => resolve(response)
-      );
-    });
+      const server = await new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { type: "REASON", message: textNode.textContent },
+          (response) => resolve(response)
+        );
+      });
 
-    const reason = server?.reasoning ?? "Unable to load explanation.";
-
-    showWatchdogPopup(analysis.level, reason);
-  };
-
+      const reason = server?.reasoning ?? "Unable to load explanation.";
+      showWatchdogPopup(analysis.level, reason);
+    };
   };
 
   badge.onclick = handleAlertClick;
@@ -89,9 +85,7 @@ function highlightNode(textNode, analysis) {
   }
 }
 
-// Close mini-popup if user clicks anywhere else
 document.addEventListener('mousedown', (e) => {
-  // If the click is NOT on the miniPopup and NOT on a scam highlight/badge
   if (miniPopup.style.display === 'block' && 
       !miniPopup.contains(e.target) && 
       !e.target.closest('.scam-highlight')) {
@@ -106,11 +100,9 @@ function showWatchdogPopup(level, reason) {
   host.id = 'watchdog-alert-root';
   const shadow = host.attachShadow({ mode: 'open' });
 
-  // 1. Get the mascot image URL from your Client folder
   const mascotUrl = chrome.runtime.getURL('mascot.png');
-
   const isRed = level === "RED";
-  const themeColor = isRed ? "#bc3e3e" : "#f4bd3c"; // Using the sketch's red
+  const themeColor = isRed ? "#bc3e3e" : "#f4bd3c";
 
   shadow.innerHTML = `
     <style>
@@ -120,10 +112,10 @@ function showWatchdogPopup(level, reason) {
         justify-content: center; z-index: 2147483647; font-family: 'Arial', sans-serif; 
       }
       .modal { 
-        background:rgb(255, 255, 255); /* Light grey background from your sketch */
+        background:rgb(255, 255, 255);
         width: 90%; max-width: 400px; 
         border: 10px solid ${themeColor}; 
-        border-radius: 35px; /* Hand-drawn rounded look */
+        border-radius: 35px;
         overflow: hidden; 
         box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
         text-align: center;
@@ -141,7 +133,7 @@ function showWatchdogPopup(level, reason) {
         padding: 20px 0;
       }
       .mascot-img {
-        width: 140px; /* Adjust based on your PNG proportions */
+        width: 140px;
         height: auto;
       }
       .content { 
@@ -149,7 +141,6 @@ function showWatchdogPopup(level, reason) {
         color: #000; 
         font-size: 18px; 
         line-height: 1.4; 
-        /* The horizontal lines from your sketch */
         border-top: 2px solid #999;
         border-bottom: 2px solid #999;
         margin: 0 30px 25px 30px;
@@ -189,7 +180,13 @@ function showWatchdogPopup(level, reason) {
   shadow.getElementById('close-btn').onclick = () => host.remove();
 }
 
-async function scanTextNodes(root = document.body) {
+// ---------------------------------------------------------
+// UPDATED: Messenger‑only scanning
+// ---------------------------------------------------------
+
+async function scanTextNodes(root) {
+  if (!root) return;
+
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   let node;
   const nodes = [];
@@ -214,20 +211,23 @@ async function scanTextNodes(root = document.body) {
     if (result.threatLevel === "RED" || result.threatLevel === "YELLOW") {
       highlightNode(textNode, {
         level: result.threatLevel,
-        reason: "Loading…" // replaced later on click
+        reason: "Loading…"
       });
     }
   }
 }
 
-// Initial Scan
-scanTextNodes();
+// Initial scan — Messenger only
+scanTextNodes(document.querySelector('[role="main"]'));
 
-// Watch for dynamic changes (like Messenger loading or scrolling)
+// Observe only Messenger chat window
 let timeout;
 const observer = new MutationObserver(() => {
   clearTimeout(timeout);
-  timeout = setTimeout(() => scanTextNodes(document.body), 800);
+  timeout = setTimeout(() => {
+    const chat = document.querySelector('[role="main"]');
+    if (chat) scanTextNodes(chat);
+  }, 800);
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
