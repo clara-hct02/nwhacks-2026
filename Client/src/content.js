@@ -20,6 +20,17 @@ const globalTooltip = document.createElement('div');
 globalTooltip.id = 'watchdog-global-tooltip';
 document.body.appendChild(globalTooltip);
 
+function fetchReasonFromServer(message) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(
+      { type: "ANALYZE", message },
+      (response) => {
+        resolve(response?.reasoning ?? "No reasoning returned.");
+      }
+    );
+  });
+}
+
 function getScamAnalysis(text) {
   const lower = text.toLowerCase();
   for (const phrase in SCAM_DB) {
@@ -75,7 +86,12 @@ function scanTextNodes(root = document.body) {
 
   matches.forEach(({ node, analysis }) => {
     highlightNode(node, analysis);
-    if (analysis.level === "RED") showWatchdogPopup(analysis.level, analysis.reason);
+
+    if (analysis.level === "RED") {
+      fetchReasonFromServer(node.textContent).then(serverReason => {
+        showWatchdogPopup(analysis.level, serverReason);
+      });
+    }
   });
 }
 
@@ -89,7 +105,7 @@ function highlightNode(textNode, analysis) {
 
   badge.onmouseenter = (e) => {
     const rect = badge.getBoundingClientRect();
-    globalTooltip.innerHTML = `<strong>Why was this flagged?</strong><br>${analysis.reason}`;
+    globalTooltip.innerHTML = `<strong>Why was this flagged?</strong><br>AI is analyzing this message...`;
     globalTooltip.style.display = 'block';
     globalTooltip.style.top = `${rect.top + window.scrollY - 10}px`;
     globalTooltip.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
