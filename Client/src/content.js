@@ -25,7 +25,8 @@ function getScamAnalysis(text) {
   return null;
 }
 
-// 1. Create Global Portal for the "Mini-Popup"
+// singular ui anchor; ensures ui is consistently on topmost layer of site
+// instead of creating a new popup for every flagged msg, uses one reusable portal moved to the right coordinates
 const miniPopup = document.createElement('div');
 miniPopup.id = 'watchdog-mini-popup';
 miniPopup.style.display = 'none';
@@ -219,8 +220,6 @@ function showWatchdogPopup(level, reason) {
 // ---------------------------------------------------------
 
 async function scanTextNodes() {
-  // Your real message bubbles look like:
-  // <div dir="auto" class="html-div ...">send gift card</div>
   const messageNodes = document.querySelectorAll('div[dir="auto"].html-div');
 
   for (const node of messageNodes) {
@@ -252,7 +251,8 @@ async function scanTextNodes() {
 // ---------------------------------------------------------
 // Continuous scanning via MutationObserver
 // ---------------------------------------------------------
-
+// Facebook Messenger is a "single page application" - msgs appear dynamically as you scroll/chat; MutationObserver watches for changes in page
+// extension scans new msgs instantly w/o refreshing page
 let timeout;
 const observer = new MutationObserver(() => {
   clearTimeout(timeout);
