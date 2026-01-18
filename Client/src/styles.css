@@ -1,12 +1,26 @@
-.scam-highlight {
-  background-color: rgba(255, 0, 0, 0.18);
+/* src/styles.css */
+
+/* Red Level (Definite Scam) */
+.scam-highlight.red {
+  background-color: rgba(255, 0, 0, 0.25) !important;
+  border-bottom: 2px solid red;
   border-radius: 4px;
-  padding: 2px 4px;
+}
+
+/* Yellow Level (Suspicious) */
+.scam-highlight.yellow {
+  background-color: rgba(255, 215, 0, 0.3) !important;
+  border-bottom: 2px solid #b8860b;
+  border-radius: 4px;
 }
 
 .scam-badge {
-  color: red;
+  color: black;
+  background: yellow;
   font-weight: bold;
-  font-size: 0.8em;
+  font-size: 0.75em;
+  padding: 1px 4px;
   margin-left: 6px;
+  border-radius: 3px;
+  border: 1px solid black;
 }
