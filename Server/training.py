@@ -11,7 +11,7 @@ import os
 import urllib.request
 import zipfile
 
-from model import SpamClassifier
+from .model import SpamClassifier
 
 
 # ============================================================================
