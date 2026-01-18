@@ -1,18 +1,18 @@
 // src/content.js
 
 const SCAM_DB = {
-  "send gift card": { level: "RED" },
-  "buy gift cards": { level: "RED" },
-  "western union": { level: "RED" },
-  "crypto": { level: "RED" },
-  "bitcoin": { level: "RED" },
-  "telegram": { level: "RED" },
-  "whatsapp": { level: "RED" },
-  "urgent": { level: "YELLOW" },
-  "kindly": { level: "YELLOW" },
-  "verify your account": { level: "YELLOW" },
-  "secret": { level: "YELLOW" },
-  "security code": { level: "YELLOW" }
+  "send gift card": { level: "RED", reason: "Real companies or government agencies will NEVER ask you to pay them with gift cards." },
+  "buy gift cards": { level: "RED", reason: "Scammers use gift cards because they are like cash—once you share the code, the money is gone forever." },
+  "western union": { level: "RED", reason: "Wire transfers are a common way for scammers to take money without being tracked." },
+  "crypto": { level: "RED", reason: "Investment scams often promise high returns via Cryptocurrency. These are almost always fraudulent." },
+  "bitcoin": { level: "RED", reason: "Scammers prefer Bitcoin because it is difficult for banks to reverse or track." },
+  "telegram": { level: "RED", reason: "Scammers often try to move you off Facebook to 'Telegram' or 'WhatsApp' to avoid security filters." },
+  "whatsapp": { level: "RED", reason: "Moving a conversation to WhatsApp is a classic tactic to hide a scam from Facebook's detectors." },
+  "urgent": { level: "YELLOW", reason: "Scammers create a 'sense of urgency' to make you panic and act without thinking." },
+  "kindly": { level: "YELLOW", reason: "The word 'kindly' is a very common linguistic pattern used by overseas scammers." },
+  "verify your account": { level: "YELLOW", reason: "Never click links to 'verify' your account. Go directly to the official website instead." },
+  "secret": { level: "YELLOW", reason: "Scammers often tell you to keep things a secret from your family so they can't warn you." },
+  "security code": { level: "YELLOW", reason: "Never share a security code sent to your phone. Scammers use these to hack into your accounts." }
 };
 
 // 1. Create the Global Tooltip ONCE
@@ -43,11 +43,9 @@ function getScamAnalysis(text) {
 
 function showWatchdogPopup(level, reason) {
   if (document.getElementById('watchdog-alert-root')) return;
-
   const host = document.createElement('div');
   host.id = 'watchdog-alert-root';
   const shadow = host.attachShadow({ mode: 'open' });
-
   const isRed = level === "RED";
   const bgColor = isRed ? "#FF0000" : "#FFD700";
   const textColor = isRed ? "#FFFFFF" : "#000000";
@@ -68,7 +66,6 @@ function showWatchdogPopup(level, reason) {
       </div>
     </div>
   `;
-
   document.body.appendChild(host);
   shadow.getElementById('close-btn').onclick = () => host.remove();
 }
@@ -101,7 +98,7 @@ function scanTextNodes(root = document.body) {
 function highlightNode(textNode, analysis) {
   const span = document.createElement("span");
   span.className = `scam-highlight ${analysis.level.toLowerCase()}`;
-
+  
   const badge = document.createElement("span");
   badge.className = "scam-badge";
   badge.textContent = "⚠️ ALERT";
@@ -129,7 +126,7 @@ function highlightNode(textNode, analysis) {
 // Initial Scan
 scanTextNodes();
 
-// Watch for dynamic changes
+// Watch for dynamic changes (like Messenger loading or scrolling)
 let timeout;
 const observer = new MutationObserver(() => {
   clearTimeout(timeout);
