@@ -61,12 +61,21 @@ function highlightNode(textNode, analysis) {
     miniPopup.style.top = `${rect.top + window.scrollY - 10}px`;
     miniPopup.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
 
-    // "Learn More" logic
-    document.getElementById('wd-learn-more').onclick = () => {
-      miniPopup.style.display = 'none';
-      // Now show the AI/Detailed explanation popup (the one with the mascot)
-      showWatchdogPopup(analysis.level, analysis.reason);
-    };
+  document.getElementById('wd-learn-more').onclick = async () => {
+    miniPopup.style.display = 'none';
+
+    const server = await new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: "REASON", message: textNode.textContent },
+        (response) => resolve(response)
+      );
+    });
+
+    const reason = server?.reasoning ?? "Unable to load explanation.";
+
+    showWatchdogPopup(analysis.level, reason);
+  };
+
   };
 
   badge.onclick = handleAlertClick;
@@ -180,24 +189,35 @@ function showWatchdogPopup(level, reason) {
   shadow.getElementById('close-btn').onclick = () => host.remove();
 }
 
-function scanTextNodes(root = document.body) {
+async function scanTextNodes(root = document.body) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   let node;
-  const matches = [];
+  const nodes = [];
 
   while ((node = walker.nextNode())) {
     const parent = node.parentElement;
     if (!parent || ["SCRIPT", "STYLE", "TEXTAREA", "NOSCRIPT"].includes(parent.tagName)) continue;
     if (parent.closest(".scam-highlight")) continue;
+    if (!node.textContent.trim()) continue;
 
-    const analysis = getScamAnalysis(node.textContent);
-    if (analysis) matches.push({ node, analysis });
+    nodes.push(node);
   }
 
-  matches.forEach(({ node, analysis }) => {
-    highlightNode(node, analysis);
-    // REMOVED: showWatchdogPopup no longer triggers automatically here
-  });
+  for (const textNode of nodes) {
+    const result = await new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: "CLASSIFY", message: textNode.textContent },
+        (response) => resolve(response)
+      );
+    });
+
+    if (result.threatLevel === "RED" || result.threatLevel === "YELLOW") {
+      highlightNode(textNode, {
+        level: result.threatLevel,
+        reason: "Loading…" // replaced later on click
+      });
+    }
+  }
 }
 
 // Initial Scan
