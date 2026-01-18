@@ -1,23 +1,47 @@
-const RED_FLAGS = [
-  "send gift card", "buy gift cards", "gift card asap", "western union", 
-  "send money", "telegram", "whatsapp", "crypto", "bitcoin"
-];
+// src/content.js
 
-const YELLOW_FLAGS = [
-  "urgent", "kindly", "verify your account", "secret", "don't tell anyone",
-  "log in here", "password", "security code"
-];
+const SCAM_DB = {
+  "send gift card": { level: "RED" },
+  "buy gift cards": { level: "RED" },
+  "western union": { level: "RED" },
+  "crypto": { level: "RED" },
+  "bitcoin": { level: "RED" },
+  "telegram": { level: "RED" },
+  "whatsapp": { level: "RED" },
+  "urgent": { level: "YELLOW" },
+  "kindly": { level: "YELLOW" },
+  "verify your account": { level: "YELLOW" },
+  "secret": { level: "YELLOW" },
+  "security code": { level: "YELLOW" }
+};
 
-function checkThreatLevel(text) {
+// 1. Create the Global Tooltip ONCE
+const globalTooltip = document.createElement('div');
+globalTooltip.id = 'watchdog-global-tooltip';
+document.body.appendChild(globalTooltip);
+
+function fetchReasonFromServer(message) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(
+      { type: "ANALYZE", message },
+      (response) => {
+        resolve(response?.reasoning ?? "No reasoning returned.");
+      }
+    );
+  });
+}
+
+function getScamAnalysis(text) {
   const lower = text.toLowerCase();
-  if (RED_FLAGS.some(p => lower.includes(p))) return "RED";
-  if (YELLOW_FLAGS.some(p => lower.includes(p))) return "YELLOW";
+  for (const phrase in SCAM_DB) {
+    if (lower.includes(phrase)) {
+      return { phrase, ...SCAM_DB[phrase] };
+    }
+  }
   return null;
 }
 
-// Function to create the intrusive popup
-function showWatchdogPopup(level, text) {
-  // Check if a popup is already showing to avoid spamming the user
+function showWatchdogPopup(level, reason) {
   if (document.getElementById('watchdog-alert-root')) return;
 
   const host = document.createElement('div');
@@ -25,115 +49,91 @@ function showWatchdogPopup(level, text) {
   const shadow = host.attachShadow({ mode: 'open' });
 
   const isRed = level === "RED";
-  const bgColor = isRed ? "#FF0000" : "#FFD700"; // Red or Yellow
-  const textColor = isRed ? "#FFFFFF" : "#000000"; // White text on Red, Black on Yellow
-  const warningText = isRed ? "STOP: DO NOT SEND MONEY OR GIFT CARDS." : "CAUTION: SUSPICIOUS CONVERSATION.";
+  const bgColor = isRed ? "#FF0000" : "#FFD700";
+  const textColor = isRed ? "#FFFFFF" : "#000000";
 
   shadow.innerHTML = `
     <style>
-      .overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.7);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 2147483647;
-        font-family: 'Segoe UI', Arial, sans-serif;
-      }
-      .modal {
-        background: white;
-        width: 90%; max-width: 500px;
-        border: 10px solid ${bgColor};
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-      @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-      .header {
-        background: ${bgColor};
-        color: ${textColor};
-        padding: 20px;
-        text-align: center;
-        font-weight: bold;
-        font-size: 24px;
-      }
-      .content {
-        padding: 30px;
-        color: #000;
-        text-align: center;
-        font-size: 18px;
-        line-height: 1.5;
-      }
-      .btn {
-        display: block;
-        width: 80%;
-        margin: 0 auto 20px auto;
-        padding: 15px;
-        background: #000;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 10px;
-        font-weight: bold;
-        text-align: center;
-        cursor: pointer;
-        border: none;
-        font-size: 16px;
-      }
-      .btn:hover { background: #333; }
+      .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2147483647; font-family: Arial, sans-serif; }
+      .modal { background: white; width: 90%; max-width: 450px; border: 8px solid ${bgColor}; border-radius: 15px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+      .header { background: ${bgColor}; color: ${textColor}; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; }
+      .content { padding: 25px; color: #000; text-align: center; font-size: 18px; line-height: 1.4; }
+      .btn { display: block; width: 80%; margin: 0 auto 20px auto; padding: 12px; background: #000; color: #fff; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; border: none; font-size: 16px; }
     </style>
     <div class="overlay">
       <div class="modal">
-        <div class="header">⚠️ ${warningText}</div>
-        <div class="content">
-          Watchdog detected <strong>suspicious behavior</strong> in this message. 
-          Scammers often use phrases like this to steal money or information.
-        </div>
-        <button class="btn" id="close-btn">I am safe, close this</button>
+        <div class="header">⚠️ WARNING</div>
+        <div class="content"><strong>${reason}</strong><br><br>Please be careful.</div>
+        <button class="btn" id="close-btn">I Understand</button>
       </div>
     </div>
   `;
 
   document.body.appendChild(host);
-
-  shadow.getElementById('close-btn').addEventListener('click', () => {
-    host.remove();
-  });
+  shadow.getElementById('close-btn').onclick = () => host.remove();
 }
 
 function scanTextNodes(root = document.body) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   let node;
+  const matches = [];
+
   while ((node = walker.nextNode())) {
-    const level = checkThreatLevel(node.textContent);
-    if (level) {
-      showWatchdogPopup(level, node.textContent);
-      highlightNode(node, level);
-    }
+    const parent = node.parentElement;
+    if (!parent || ["SCRIPT", "STYLE", "TEXTAREA", "NOSCRIPT"].includes(parent.tagName)) continue;
+    if (parent.closest(".scam-highlight")) continue;
+
+    const analysis = getScamAnalysis(node.textContent);
+    if (analysis) matches.push({ node, analysis });
   }
+
+  matches.forEach(({ node, analysis }) => {
+    highlightNode(node, analysis);
+
+    if (analysis.level === "RED") {
+      fetchReasonFromServer(node.textContent).then(serverReason => {
+        showWatchdogPopup(analysis.level, serverReason);
+      });
+    }
+  });
 }
 
-function highlightNode(textNode, level) {
-  if (textNode.parentNode.classList?.contains("scam-highlight")) return;
-
+function highlightNode(textNode, analysis) {
   const span = document.createElement("span");
-  span.className = `scam-highlight ${level.toLowerCase()}`;
-  span.textContent = textNode.textContent;
+  span.className = `scam-highlight ${analysis.level.toLowerCase()}`;
 
   const badge = document.createElement("span");
-  badge.textContent = " ⚠️ WATCHDOG ALERT";
   badge.className = "scam-badge";
+  badge.textContent = "⚠️ ALERT";
 
+  badge.onmouseenter = (e) => {
+    const rect = badge.getBoundingClientRect();
+    globalTooltip.innerHTML = `<strong>Why was this flagged?</strong><br>AI is analyzing this message...`;
+    globalTooltip.style.display = 'block';
+    globalTooltip.style.top = `${rect.top + window.scrollY - 10}px`;
+    globalTooltip.style.left = `${rect.left + window.scrollX + (rect.width / 2)}px`;
+  };
+
+  badge.onmouseleave = () => {
+    globalTooltip.style.display = 'none';
+  };
+
+  span.textContent = textNode.textContent;
   span.appendChild(badge);
-  textNode.parentNode.replaceChild(span, textNode);
+
+  if (textNode.parentNode) {
+    textNode.parentNode.replaceChild(span, textNode);
+  }
 }
 
-// Initial scan and Observer
+// Initial Scan
 scanTextNodes();
-const observer = new MutationObserver(mutations => {
-  for (const m of mutations) {
-    m.addedNodes.forEach(node => {
-      if (node.nodeType === Node.ELEMENT_NODE) scanTextNodes(node);
-    });
-  }
+
+// Watch for dynamic changes
+let timeout;
+const observer = new MutationObserver(() => {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => scanTextNodes(document.body), 800);
 });
+
 observer.observe(document.body, { childList: true, subtree: true });

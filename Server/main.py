@@ -2,8 +2,26 @@ from fastapi import FastAPI
 import torch
 from google import genai
 from Server.schemas import MessageRequest, PredictionResponse
+from dotenv import load_dotenv
+import os
+from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY not set")
 
 app = FastAPI()
+client = genai.Client(api_key=GEMINI_API_KEY)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:3000"],  # or ["*"] for now
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
@@ -16,8 +34,6 @@ async def analyze(req: MessageRequest):
 
     threat = "RED"
     # threat = assess_threat(message)
-
-    # reason = "test reason"
 
     if threat == "RED" or threat == "YELLOW":
         reason = get_reason(message)
@@ -34,9 +50,9 @@ def get_reason(message):
         "Return a one sentence reason as to why this message may be a threat."
     )
 
-    response = genai.GenerativeModel("gemini-3-flash-preview").generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents=prompt,
+    )
     return response.text
-
-# def assess_threat(message):
-#     model()
 
